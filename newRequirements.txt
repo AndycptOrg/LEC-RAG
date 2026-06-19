@@ -4,3 +4,5 @@ langchain_core
 transformers
 torch
 accelerate
+sentence-transformers
+faiss-cpu
