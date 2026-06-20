@@ -1,4 +1,6 @@
 import faiss
+from transformers.utils.logging import disable_progress_bar
+disable_progress_bar()
 
 # 2. Sample preprocessed corpus chunks
 documents = [
@@ -50,15 +52,10 @@ def query(query, k, model_index=None):
     # feed query with docs to the LLM for answer generation
     context = "" #f"Answer the following question based on the provided documents:\n\nQuestion: {query}\n\nDocuments:\n"
     for score, doc in docs:
-        context += f"- {doc} (Score: {score:.4f})\n"
+        context += f"{doc}. "# (Score: {score:.4f})\n"
 
     print(query, context)
     input("e")
-    # V1 (API updated in transformers V5)
-    # from transformers import pipeline
-    # pipe = pipeline("question-answering", model="distilbert/distilbert-base-cased-distilled-squad")
-    # response = pipe(question=query, context=prompt, num_return_sequences=1)
-
     # V2 (Extractive QA models cannot answer open-ended queries)
     # from transformers import AutoModelForQuestionAnswering, AutoTokenizer
     # import torch
@@ -85,33 +82,61 @@ def query(query, k, model_index=None):
     # answer_tokens = inputs["input_ids"][0][start_index : end_index+1]
     # response = tokenizer.decode(answer_tokens)
 
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-    import torch
+    # V3
+    # from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+    # import torch
+    # LLM_MODEL = "google/flan-t5-base"
+    # tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL, tqdm_class=None)
+    # model = AutoModelForSeq2SeqLM.from_pretrained(LLM_MODEL, tqdm_class=None)
+    # prompt = f"Context: {context}\nAnswer the following question using the context provided.\nQuestion: {query}"
+
+    # # 3. Tokenize input sequence
+    # inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+
+    # # 4. Generate the response text tokens (instead of computing raw start/end logits)
+    # with torch.no_grad():
+    #     output_tokens = model.generate(
+    #         **inputs, 
+    #         max_new_tokens=100,  # Limits length of generated answer
+    #         temperature=0.7,     # Adds mild creativity/fluency
+    #         do_sample=True       # Enables text generation sampling
+    #     )
+
+    # print("Tokens layout:", tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
+
+    # # 5. Decode the newly created tokens back to human text
+    # response = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
+    
+    
+    # V5 Langchain-ified
+    from langchain_huggingface import HuggingFaceEndpoint, HuggingFaceEmbeddings
+    from langchain_core.prompts import PromptTemplate
+    from langchain_core.runnables import RunnablePassthrough
+    from langchain_core.output_parsers import StrOutputParser
+    
     LLM_MODEL = "google/flan-t5-base"
-    tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL)
-    model = AutoModelForSeq2SeqLM.from_pretrained(LLM_MODEL)
-    prompt = f"Answer the following question using the context provided.\nQuestion: {query}\nContext: {context}"
+    llm = HuggingFaceEndpoint(
+        repo_id=LLM_MODEL,
+        task="text2text-generation",
+        temperature=0.7,
+        max_new_tokens=256
+    )
 
-    # 3. Tokenize input sequence
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+    # template = f"Context: {context}\nQuestion: {{question}}\nAnswer:"
+    # prompt = PromptTemplate.from_template(template)
 
-    # 4. Generate the response text tokens (instead of computing raw start/end logits)
-    with torch.no_grad():
-        output_tokens = model.generate(
-            **inputs, 
-            max_new_tokens=100,  # Limits length of generated answer
-            temperature=0.7,     # Adds mild creativity/fluency
-            do_sample=True       # Enables text generation sampling
-        )
-
-    print("Tokens layout:", tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
-
-    # 5. Decode the newly created tokens back to human text
-    response = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
+    # rag_chain = (
+    #     {"question": RunnablePassthrough()}
+    #     | prompt
+    #     | llm
+    #     | StrOutputParser()
+    # )
+    # response = rag_chain.invoke(query)
+    response = llm.invoke(f"Context: {context}\n Question: {query}\n Answer:")
     print("Answer:", response)
 
     # response = ollama.generate(model="llama3", prompt=prompt)
-    return response #['answer']
+    return response.strip() #['answer']
 
 # models for extracting corpus
 model, index = load_model()
