@@ -37,7 +37,8 @@ def query(query, k, model_index=None, debug=False):
     from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
     import torch
 
-    LLM_MODEL = "google/flan-t5-base"
+    LLM_MODEL = "google/flan-t5-base"#"Qwen/Qwen2.5-3B-Instruct"/"HuggingFaceTB/SmolLM3-3B"
+    # TODO: migrate to CasualLM model: summarasation -> rerank -> CasualLM
     tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL, tqdm_class=None)
     model = AutoModelForSeq2SeqLM.from_pretrained(LLM_MODEL, tqdm_class=None)
     
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     index = get_embedding()
 
     question = "Tell me about AI and neural networks"
+    question = "How do you set up ssh?"
     answer = query(question, k=3, model_index=(model, index), debug=True)
     print("Question:", question)
     print("Answer:", answer)
