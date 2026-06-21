@@ -50,3 +50,6 @@ dist/
 
 # Python bytecode
 *.pyc
+
+# saved indicies
+*.index
