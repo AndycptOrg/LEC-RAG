@@ -1,4 +1,2 @@
 sentence-transformers==5.5.1
 faiss-cpu==1.14.3
-langchain-huggingface
-langchain-community

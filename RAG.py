@@ -52,30 +52,36 @@ def query(query, k, model_index=None):
     # feed query with docs to the LLM for answer generation
     context = "" #f"Answer the following question based on the provided documents:\n\nQuestion: {query}\n\nDocuments:\n"
     for score, doc in docs:
-        context += f"{doc}. "# (Score: {score:.4f})\n"
+        context += f"{doc} "# (Score: {score:.4f})\n"
 
     print(query, context)
     
-    # V6 slimmed local langchain?
-    from langchain_huggingface import HuggingFacePipeline
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-    
+    # V6 slimmed local
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+    import torch
+
     LLM_MODEL = "google/flan-t5-base"
     tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL, tqdm_class=None)
     model = AutoModelForSeq2SeqLM.from_pretrained(LLM_MODEL, tqdm_class=None)
     
-    pipe = pipeline(
-        "text-generation",
-        model=LLM_MODEL,
-        tokenizer=tokenizer,
-        max_new_tokens=256
-    )
-    
-    llm = HuggingFacePipeline(
-        pipeline=pipe
-    )
+    prompt = f"{context}\n Question: {query}\n Answer:"
 
-    response = llm.invoke(f"Context: {context}\n Question: {query}\n Answer:")
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)
+    
+    with torch.no_grad():
+        output_tokens = model.generate(
+            **inputs, 
+            max_new_tokens=256,
+            temperature=0.7,
+            do_sample=True
+        )
+
+    print("Tokens layout:", tokenizer.convert_ids_to_tokens(inputs["input_ids"][0]))
+
+    # 5. Decode the newly created tokens back to human text
+    response = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
+
+    print("Question:", query)
     print("Answer:", response)
 
     # response = ollama.generate(model="llama3", prompt=prompt)
