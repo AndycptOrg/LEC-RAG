@@ -13,11 +13,12 @@ def search(model, index, queries, k):
 
     return [zip(similarities[i], [documents[j] for j in indices[i]]) for i in range(len(queries))]
 
-def query(query, k, model_index=None, debug=False):
+def query(query, k=10, model_index=None, debug=False):
 
     # import ollama
     if model_index is None:
-        model, index = load_model()
+        from corpus import model, get_embedding
+        index = get_embedding()
     else:
         model, index = model_index
 
