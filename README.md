@@ -75,3 +75,6 @@ Using precision and recall metrics defined [here](https://docs.ragas.io/en/lates
 | --- | --- | --- | --- |
 | precision | 0.8 | 0.4 | 1.00 |
 | recall | 0.00 | 1.0 | 0.00 |
+
+
+These results seem to show that the pipline often fails to extract relavent information when there is high precision of retrieval. But this may not be as reflective of the correlation between precision and recall as the number of retrieved documents is fixed for this pipline and hence, when there is low precision, the context volume is still high; instead of a targeted context. In contrast for low precision queries, the pipline seems to be able to recall more information from the context in the final answer. This may be due to the large size of the context, and lower precision queries allow the LLM model to more efficently discard irrelevant context from the prompt.
