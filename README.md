@@ -54,12 +54,24 @@ The current pipeline goes as follows:
 
 I implemented this pipline as this was the most faithful interpretation to the specification given the timeline and constrained by my choices along the way.
 In the future, I would like to rework the pipline as follows:
-1. when a query is asked of the api, it retrieves the encoding model(Sentence Transformer) and embeded index(chromaDB/Postgress+pgvector) and performs semantic search over the index wrt the query
-2. the top 10 results are summarised(summary model) wrt the query and reincoded into an updated semantic index(FAISS) for reranking
-3. the top 3 results are fed along with the query to the LLM(CasualLM) for generation
-4. the answer is returned via API
+1. the corpus is chunked and layered according to the source document creating a layered embedded index
+2. when a query is asked of the api, it retrieves the encoding model(Sentence Transformer) and embeded index(chromaDB/Postgress+pgvector) and performs semantic search over the index wrt the query
+3. the top 10 results are summarised(summary model) wrt the query and reincoded into an updated semantic index(FAISS) for reranking
+4. the top 3 results are fed along with the query to the LLM(CasualLM) for generation
+5. the answer is returned via API
 
 I chose to use FastAPI because it was fast and simple and the I had used it most recently.
 
 I decided not to use langchain becuase for this small pipeline, it only introduced more dependancy than it was worth and with the rapid changes that were made to the pipline, I found the API to not be as stable as I had hoped. Also, I wasn't too familiar with the library anyways, so it wouldn't have been smart to try and force it in.
 ### Evaluation
+queries:
+- How to reset password?
+- How to fix printer?
+- How to set up new employee accounts?
+
+Using precision and recall metrics defined [here](https://docs.ragas.io/en/latest/concepts/metrics/available_metrics/).
+
+| metric | password | printer | employee | 
+| --- | --- | --- | --- |
+| precision | 0.8 | 0.4 | 1.00 |
+| recall | 0.00 | 1.0 | 0.00 |
