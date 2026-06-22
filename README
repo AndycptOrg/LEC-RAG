@@ -1,0 +1,26 @@
+# RAG Experiment
+
+## How to run
+1. Clone the repo into a directory
+```bash
+git clone <insert repo>
+```
+2. Create and activate virtual environment
+```bash
+python -m venv .venv
+```
+For Windows users
+```bash
+Set-ExecutionPolicy -ExecutionPolicy AllSigned -Scope Process
+.venv\Scripts\activate
+```
+For Linux users
+```bash
+source .venv/bin/activate
+```
+3. Start server
+```bash
+fastapi dev
+```
+
+Fastapi should tell you where the server is running (typically at http://localhost:8000)
