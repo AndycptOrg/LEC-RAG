@@ -5,7 +5,7 @@ import faiss
 import numpy as np
 # 1. Load the embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
-documents = [] # TODO: singleton
+documents = []
 
 def get_model():
     return model

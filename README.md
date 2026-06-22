@@ -1,9 +1,10 @@
 # RAG Experiment
 
 ## How to run
-1. Clone the repo into a directory
+1. Clone the repo into a directory and enter
 ```bash
-git clone <insert repo>
+git clone https://github.com/AndycptOrg/LEC-RAG.git
+cd LEC-RAG
 ```
 2. Create and activate virtual environment
 ```bash
@@ -18,14 +19,18 @@ For Linux users
 ```bash
 source .venv/bin/activate
 ```
-3. Start server
+3. Load requirements
+```bash
+python -m pip install -r requirements.txt
+```
+4. Start server
 ```bash
 fastapi dev
 ```
 
 Fastapi should tell you where the server is running (typically at http://localhost:8000)
 
-4. Querying
+5. Querying
 ```bash
 curl -X 'POST' 'http://localhost:8000/ask?question=How%20to%20reset%20password%3F'
 ```
