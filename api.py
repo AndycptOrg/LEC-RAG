@@ -8,13 +8,12 @@ def health():
 
 @app.post("/ask")
 async def ask(
-    question: str 
+    question: str,
+    docs: bool=False
 ):
     from RAG import query
-    response = query(question)
-    return {
-        "response": response
-    }
+    response = query(question, return_docs=docs)
+    return response
 
 if __name__ == "__main__":
     app

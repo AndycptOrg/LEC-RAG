@@ -18,7 +18,7 @@ def search(model, index, queries, k):
 
     return [zip(similarities[i], [documents[j] for j in indices[i]]) for i in range(len(queries))]
 
-def query(query, k=10, model_index=None, debug=False):
+def query(query, k=10, model_index=None, debug=False, return_docs=False):
     if model_index is None:
         index = get_embedding()
         encoding_model = get_model()
@@ -26,11 +26,13 @@ def query(query, k=10, model_index=None, debug=False):
         encoding_model, index = model_index
 
     docs = search(encoding_model, index, [query], k)[0]
-    
+
+    documents = []
     # feed query with docs to the LLM for answer generation
     context = ""
     for score, doc in docs:
         context += f"{doc} "
+        documents.append(doc)
         if (debug):
             print(score)
     
@@ -50,7 +52,7 @@ def query(query, k=10, model_index=None, debug=False):
     with torch.no_grad():
         output_tokens = llm_model.generate(
             **inputs, 
-            max_new_tokens=256,
+            max_new_tokens=512,
             temperature=0.5,
             do_sample=True
         )
@@ -61,7 +63,13 @@ def query(query, k=10, model_index=None, debug=False):
     # 5. Decode the newly created tokens back to human text
     response = tokenizer.decode(output_tokens[0], skip_special_tokens=True)
 
-    return response.strip() #['answer']
+    response = {
+        "response": response.strip()
+    }
+
+    if (return_docs):
+        response["documents"] = documents
+    return response
 
 
 if __name__ == "__main__":
